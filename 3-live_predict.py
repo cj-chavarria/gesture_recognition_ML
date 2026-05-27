@@ -26,6 +26,10 @@ sequence = deque(maxlen=N_FRAMES)
 frame_idx = 0
 prev_wrist = None
 
+def is_moving(sequence, threshold=10):
+    max_variance = np.max(np.var(sequence, axis=0))
+    return max_variance > threshold
+
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -37,9 +41,12 @@ while cap.isOpened():
     sequence.append(frame_data)
     
     if len(sequence) == N_FRAMES:
-        gesture, prob = predict_gesture(sequence, model)
-        cv2.putText(frame, f'Gesture: {gesture} | Probability: {prob:3f}%',
-                    (15, 30), cv2.LINE_AA, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
+        if is_moving(sequence):
+            gesture, prob = predict_gesture(sequence, model)
+            cv2.putText(frame, f'Gesture: {gesture} | Probability: {prob:3f}%',
+                        (15, 30), cv2.LINE_AA, 0.8, (0,0,0), 2, cv2.LINE_AA)
+        else:
+            cv2.putText(frame, 'No movement', (50, 30), cv2.LINE_AA, 0.8, (0,0,0), 2, cv2.LINE_AA)
     
     cv2.imshow('', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
     frame_idx += 1
