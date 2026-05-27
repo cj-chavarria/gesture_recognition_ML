@@ -12,7 +12,7 @@ model = load_model('./models/trained_model.keras')
 def predict_gesture(sequence, model: Sequential):
     model_input = np.expand_dims(np.array(sequence), axis=0)
     
-    predictions = model.predict(model_input, verbose=0)
+    predictions = model(model_input, training=False).numpy()
     
     y_pred = np.argmax(predictions)
     
